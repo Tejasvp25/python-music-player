@@ -13,6 +13,8 @@ import pygame
 from mutagen.mp3 import MP3
 from mutagen.flac import FLAC
 import time
+import pyglet
+import threading
 
 # Create a tkinter instance
 base = Tk()
@@ -80,23 +82,21 @@ def del_song():
 
 # Define play_song function
 def play_song():
+	pyglet.app.exit()
 	global isStopped
 	isStopped = False
 	song_slider.config(value=0)
 	info_bar.config(text="0")
 	song = pl.get(ACTIVE)
-	extension = os.path.splitext(song)[1]
-	if (extension == ".mp3"):
-		oalQuit()
-		pygame.mixer.music.stop()
-		pygame.mixer.music.load(song)
-		pygame.mixer.music.play(loops=0)
-	else:
-		oalQuit()
-		pygame.mixer.music.stop()
-		sauce = oalOpen(song)
-		sauce.play()
+	s = pyglet.media.load(song)
+	s.play()
+	pyglet.app.run()
 	song_time()
+
+def real_play():
+	k = threading.Thread(target=play_song)
+	k.daemon = True
+	k.start()
 
 # Define forward_song function
 def forward_song():
@@ -113,10 +113,8 @@ def forward_song():
 	if (song > ''):
 		if (extension == ".mp3"):
 			oalQuit()
-			pygame.mixer.music.stop()
-			pygame.mixer.music.load(song)
-			pygame.mixer.music.play(loops=0)
-
+			player = pyglet.media.Player()
+			player.pause(song)
 		else:
 			oalQuit()
 			pygame.mixer.music.stop()
@@ -283,7 +281,7 @@ pausebutton.configure(bg="black")
 
 # Play Button
 playbuttonImage = PhotoImage(file="pics/play.png")
-playbutton = Button(buttonsframe, image=playbuttonImage, height=64, width=64, borderwidth=0, command=play_song)
+playbutton = Button(buttonsframe, image=playbuttonImage, height=64, width=64, borderwidth=0, command=real_play)
 playbutton.grid(row=0, column=2, padx=10, pady=10)
 playbutton.configure(bg="black")
 
